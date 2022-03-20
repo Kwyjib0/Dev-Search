@@ -641,7 +641,7 @@ img {
 .auth {
   width: 100%;
   position: relative;
-  z-index: 1;
+  /* z-index: 1; was unable to close alert messages b/c of this */
   background: transparent;
   height: 99vh;
   display: flex;

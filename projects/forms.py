@@ -1,7 +1,7 @@
-import imp
-from django.forms import ModelForm
+from django.db.models.base import Model
+from django.forms import ModelForm, widgets
 from django import forms
-from .models import Project
+from .models import Project, Review
 
 class ProjectForm(ModelForm):
     class Meta:
@@ -10,10 +10,11 @@ class ProjectForm(ModelForm):
         widgets = {
             'tags':forms.CheckboxSelectMultiple(),
         }
-
+    # format form fields
     def __init__(self, *args, **kwargs):
+        # override super
         super(ProjectForm, self).__init__(*args, **kwargs)
-
+        # apply class 'input' to each field
         for name, field in self.fields.items():
             field.widget.attrs.update({'class': 'input'})
 

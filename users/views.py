@@ -1,8 +1,73 @@
-from django.shortcuts import render
+import django
+from django.shortcuts import render, redirect
+from django.contrib.auth import login, authenticate, logout # for authentication
+from django.contrib.auth.decorators import login_required # to require login to access a page
+from django.contrib import messages # for flash messages
+from django.contrib.auth.models import User # for authentication
+from .forms import CustomUserCreationForm # customized django UserCreationForm from forms.py
 from .models import Profile
 
-# Create your views here.
+# for authentication
+def loginUser(request):
+    page = 'login'
+    # keeps users already logged in from accessing login page
+    # if try to go to this page redirected to profiles page
+    if request.user.is_authenticated:
+        return redirect('profiles')
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
 
+        # make sure username exists in database
+        try:    
+            user = User.objects.get(username=username)
+        except:
+            messages.error(request, 'Username does not exist')
+        # authenticate function takes and username and password and makes sure
+        # that pw matches the username and returns either the user instance or none
+        # queries the database for user that matches username and password
+        user = authenticate(request, username=username, password=password)
+        # checks fi user exists
+        if user is not None:
+            # creates a session for the user in the database and add that to browser's
+            # cookies so that we know the user is logged in
+            login(request, user)
+            return redirect('profiles')
+        else:
+            messages.error(request, 'Username OR password is incorrect')
+
+    return render(request=request, template_name="users/login_register.html")
+
+def logoutUser(request):
+    logout(request)
+    messages.info(request, 'User was successfully logged out.')
+    return redirect('login')
+
+def registerUser(request):
+    page = 'register'
+    # create an instance of django's user creation form for adding user to db
+    form = CustomUserCreationForm()
+
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            # saving form & creating and holding a temporary user instance 
+            # in case we want to modify something such as capitalization in username
+            # or if need  to add data e.g. field value is null
+            user = form.save(commit=False)
+            # makes username all lower case, so not case sensitive
+            user.username = user.username.lower()
+            user.save()
+
+            messages.success(request, 'User account was created.')
+            # logs new user in when registers
+            login(request, user)
+            return redirect('profiles')
+
+        else:
+            messages.error(request, 'An error has occurred. Please try again.')
+    context = {'page': page, 'form': form}
+    return render(request=request, template_name="users/login_register.html", context=context)
 
 def profiles(request):
     profiles = Profile.objects.all()
@@ -11,7 +76,22 @@ def profiles(request):
 
 def userProfile(request, pk):
     profile = Profile.objects.get(id=pk)
+    # excludes skills that have no description, description = ""
     topSkills = profile.skill_set.exclude(description__exact="")
+    # skills w/o a description, excludes those w/ a description
     otherSkills = profile.skill_set.exclude(description="")
     context = {'profile': profile, 'topSkills': topSkills, 'otherSkills': otherSkills};
     return render(request=request, template_name="users/user-profile.html", context=context)
+
+# decarator this requires user to be logged in to access this page
+# and redirects to login page if not logged in
+@login_required(login_url='login')
+def userAccount(request):
+    # request.user gets logged in user
+    profile = request.user.profile
+    # all skills, w/ & w/o a description
+    skills = profile.skill_set.all()
+    projects = profile.project_set.all()
+
+    context = {'profile': profile,'skills': skills, 'projects': projects};
+    return render(request=request, template_name="users/account.html", context=context)

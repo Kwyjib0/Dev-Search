@@ -19,9 +19,30 @@
 </head>
 <body>
   {% include 'navbar.html' %}
+  <!-- code for flash messages from https://docs.djangoproject.com/en/4.0/ref/contrib/messages/-->
+  <!--{% if messages %}
+  <ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %} -->
+
+  {% if messages %}
+    {% for message in messages %}
+    <div style="display: flex; justify-content: center;">
+    <!--looks for message tag: error, success, warning, etc. used with message method in views -->>
+      <div class="alert alert--{{ message.tags }}">
+        <p class="alert__message">{{message}}</p>
+        <button class="alert__close">⨯</button>
+      </div>   
+    </div>
+    {% endfor %}
+  {% endif %}
 
   {% block content %}
 
   {% endblock content %}
 </body>
+<script src="{% static 'uikit/app.js' %}" ></script>
 </html>
