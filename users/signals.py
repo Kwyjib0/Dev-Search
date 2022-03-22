@@ -15,6 +15,16 @@ def createProfile(sender, instance, created, **kwargs):
             name=user.first_name
         )
 
+def updateUser(sender, instance, created, **kwargs):
+    profile = instance
+    user = profile.user
+    if created == False:
+        user.first_name = profile.name
+        user.username = profile.username
+        user.email = profile.email
+        user.save()
+
+
 # @receiver(post_delete, sender=Profile)
 def deleteUser(sender, instance, **kwargs):
     user=instance.user
@@ -23,5 +33,7 @@ def deleteUser(sender, instance, **kwargs):
 # ALTERNATIVE TO USING DECARATORS:
 # when user is saved, createProfile function is run
 post_save.connect(createProfile, sender=User)
+# when profile is edited, updateUser function is run
+post_save.connect(updateUser, sender=Profile)
 # when profile is deleted, deleteUser function is run
 post_delete.connect(deleteUser, sender=Profile)
