@@ -1,0 +1,33 @@
+<!--check if more than one page, so pagination does not display for only one page-->
+{% if queryset.has_other_pages %}
+<div class="pagination">
+<ul class="container">
+    <!-- check if there was a previous page-->
+    {% if queryset.has_previous %}
+    <!--link to previous page, &#10094; is HTML code for arrow symbol-->
+    <!--data-page = custom attribute for page value-->
+    <li><a href="?page={{queryset.previous_page_number}}" class="btn page-link btn--sub" data-page="{{queryset.previous_page_number}}">&#10094; Prev</a></li>
+    {% endif %}
+
+    <!--get and loop through page range/number of pages-->
+    {% for page in custom_range %}
+    <!--projects and profiles querysets are set to paginator page in views, this gives more options than a queryset; .number gives current number of page user is on, this is used to indicate the button for the pg the user is on by styling differently -->
+    {% if page == queryset.number %}
+    <!--data-page = custom attribute for page value-->
+    <li><a href="?page={{page}}" class="btn page-link btn--sub" data-page="{{page}}">{{page}}</a></li>
+    {% else %}
+    <!--url link to page value-->
+    <li><a href="?page={{page}}" class="btn page-link" data-page="{{page}}">{{page}}</a></li>
+    {% endif %}
+    {% endfor %}
+
+    <!-- check if there is a next page-->
+    {% if queryset.has_next %}
+    <!--link to previous page, &#10094; is HTML code for arrow symbol-->
+    <!--data-page = custom attribute for page value-->
+    <li><a href="?page={{queryset.next_page_number}}" class="btn page-link btn--sub" data-page="{{queryset.next_page_number}}">Next &#10095;</a></li>
+    {% endif %}
+</ul>
+</div>
+{% endif %}
+

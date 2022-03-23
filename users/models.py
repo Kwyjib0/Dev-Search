@@ -25,6 +25,10 @@ class Profile(models.Model):
     def __str__(self):
         return str(self.username)
 
+    class Meta:
+        # orders profiles alphabetically by name
+        ordering = ['name']
+
 class Skill(models.Model):
     owner = models.ForeignKey(Profile, null=True, blank=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=200, null=True, blank=True)

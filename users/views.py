@@ -1,13 +1,15 @@
-import profile
-import re
-import django
+# from django.dispatch.dispatcher import receiver
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout # for authentication
 from django.contrib.auth.decorators import login_required # to require login to access a page
 from django.contrib import messages # for flash messages
 from django.contrib.auth.models import User # for authentication
-from .forms import ProfileForm, SkillForm, CustomUserCreationForm # customized django UserCreationForm from forms.py
+# from django.urls import conf
+
+# customized django UserCreationForm from forms.py
+from .forms import ProfileForm, SkillForm, CustomUserCreationForm 
 from .models import Profile
+from .utils import searchProfiles, paginateProfiles
 
 # for authentication
 def loginUser(request):
@@ -72,8 +74,11 @@ def registerUser(request):
     return render(request=request, template_name="users/login_register.html", context=context)
 
 def profiles(request):
-    profiles = Profile.objects.all()
-    context = {'profiles': profiles}
+    profiles, search_query = searchProfiles(request)
+
+    custom_range, profiles = paginateProfiles(request, profiles, 3)
+
+    context = {'profiles': profiles, 'search_query': search_query, 'custom_range': custom_range}
     return render(request=request, template_name="users/profiles.html", context=context)
 
 def userProfile(request, pk):
