@@ -2,8 +2,9 @@ from re import T
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required # to require login to access a page
+from django.contrib import messages #for flash messages
 from .models import Project, Tag
-from .forms import ProjectForm
+from .forms import ProjectForm, ReviewForm
 from .utils import searchProjects, paginateProjects
 
 
@@ -16,7 +17,25 @@ def projects(request):
 
 def project(request, pk):
     projectObj = Project.objects.get(id=pk)
-    context={'project':projectObj}
+    form = ReviewForm()
+
+    if request.method == 'POST':
+        # Create a form instance with POST data
+        form = ReviewForm(request.POST)
+        # Create, but don't save the review instance
+        review = form.save(commit=False)
+        # Modify the review in some way
+        review.project = projectObj
+        review.owner = request.user.profile
+        # Save the new instance
+        review.save()
+        # update project vote count
+        projectObj.getVoteCount
+        messages.success(request, 'Your review was successfully submitted!')
+        # redirect back to page so form refreshes and its fields clear
+        return redirect('project', pk=projectObj.id)
+
+    context={'project':projectObj, 'form':form}
     return render(request=request, template_name='projects/single-project.html', context=context)
 
 # decarator this requires user to be logged in to access this page

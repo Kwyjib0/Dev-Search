@@ -51,8 +51,8 @@
         <h3>Account Login</h3>
         <p>Hello Developer, Welcome Back!</p>
       </div>
-
-      <form action="{% url 'login' %}" method="POST">
+      <!--leave action blank, so an pass in orginal GET request even when submitting a POST request, request still gets sent to login page; also added class="form auth__form" but I may have deleted that before so it may need deleted again if so -->
+      <form action="" method="POST" class="form auth__form">
         {% csrf_token %}
         <!-- Input:Username -->
         <div class="form__field">

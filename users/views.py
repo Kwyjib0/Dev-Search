@@ -36,7 +36,8 @@ def loginUser(request):
             # creates a session for the user in the database and add that to browser's
             # cookies so that we know the user is logged in
             login(request, user)
-            return redirect('profiles')
+            # can use GET b/c cleared that from form, this will redirect user back to prior page was on (next route passed in) when next is in request.GET method else they are sent to their account page
+            return redirect(request.GET['next'] if 'next' in request.GET else 'account')
         else:
             messages.error(request, 'Username OR password is incorrect')
 
