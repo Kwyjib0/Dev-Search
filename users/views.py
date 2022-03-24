@@ -7,8 +7,8 @@ from django.contrib.auth.models import User # for authentication
 # from django.urls import conf
 
 # customized django UserCreationForm from forms.py
-from .forms import ProfileForm, SkillForm, CustomUserCreationForm 
-from .models import Profile
+from .forms import ProfileForm, SkillForm, CustomUserCreationForm, MessageForm
+from .models import Profile, Message
 from .utils import searchProfiles, paginateProfiles
 
 # for authentication
@@ -19,7 +19,7 @@ def loginUser(request):
     if request.user.is_authenticated:
         return redirect('profiles')
     if request.method == 'POST':
-        username = request.POST['username']
+        username = request.POST['username'].lower()
         password = request.POST['password']
 
         # make sure username exists in database
@@ -173,3 +173,61 @@ def deleteSkill(request, pk):
         return redirect('account')
     context = {'object': skill}
     return render(request=request, template_name="delete_template.html", context=context)
+
+@login_required(login_url='login')
+def inbox(request):
+    # get currently logged in user
+    profile = request.user.profile
+    # have to call this something other than messages which is what we imported for flash messages
+    # using profile.messages instead of profile.message_set b/c created related_name in model
+    # messages gets refers to recipient while message_set refers to sender profile
+    messageRequests = profile.messages.all()
+    unreadCount = messageRequests.filter(is_read=False).count()
+
+    context = {'messageRequests': messageRequests, 'unreadCount': unreadCount}
+    return render(request=request, template_name="users/inbox.html", context=context)
+
+@login_required(login_url='login')
+def viewMessage(request, pk):
+    # get currently logged in user
+    profile = request.user.profile
+    # using profile.messages instead of profile.message_set b/c created related_name in model
+    # messages gets refers to recipient while message_set refers to sender profile
+    message = profile.messages.get(id=pk)
+    # triggering this view means the message is read so check and change is_read value if needed
+    if message.is_read == False:
+        message.is_read = True
+        # could add date read which would have to be added as a Message model field
+        message.save()
+    context = {'message':message}
+    return render(request=request, template_name="users/message.html", context=context)
+
+def createMessage(request, pk):
+    recipient = Profile.objects.get(id=pk)
+    form = MessageForm()
+
+    #check if there is a sender/signed-in user, could also check if user is authenticated
+    try:
+        sender = request.user.profile
+    except:
+        sender = None
+
+    if request.method == 'POST':
+        form = MessageForm(request.POST)
+        if form.is_valid():            
+            # Create, but don't save the message instance so can add values
+            message = form.save(commit=False)
+            message.sender = sender
+            message.recipient = recipient
+            # if sender is signed in user automatically update email and name so they don't need to fill this out in the form since we already have access to this info, otherwise non-signed in sender will enter this in the form
+            if sender:
+                message.name = sender.name
+                message.email = sender.email
+            message.save()
+
+            messages.success(request, 'Your message was successfully sent!')
+            # after message is sent, sender is redirected back to recipient's profile page
+            return redirect('user-profile', pk=recipient.id)
+    
+    context = {'recipient':recipient, 'form':form}
+    return render(request=request, template_name="users/message_form.html", context=context)
