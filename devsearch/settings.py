@@ -119,6 +119,23 @@ USE_L10N = True
 
 USE_TZ = True
 
+# Configure email settings, this can be entered anywhere in settings.py:
+# tell django to use email backend, library/module
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# tell django who our host is, look up for outgoing email
+EMAIL_HOST = 'smtp.gmail.com'
+# find tls port used by provider for outgoing email
+EMAIL_PORT = 587
+# tell django we are using tls
+EMAIL_USE_TLS = True
+# provide email acct connecting to
+EMAIL_HOST_USER = 'devdemoemail@gmail.com'
+# host acct password, user environment variables if sharing code
+# gmail has other option called an app pw, provides temp pw for web app
+# must turn on 2-step verification for web app pw which can be turned on
+# at https://myaccount.google.com/security
+EMAIL_HOST_PASSWORD = 'icvfozhvdaxzhohv'
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/

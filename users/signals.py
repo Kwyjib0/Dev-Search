@@ -1,5 +1,7 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from django.core.mail import send_mail
+from django.conf import settings #so do not have to manually enter sender email
 from django.contrib.auth.models import User
 from .models import Profile
 
@@ -14,6 +16,21 @@ def createProfile(sender, instance, created, **kwargs):
             email=user.email,
             name=user.first_name
         )
+
+        subject = 'Welcome to DevSearch'
+        message = 'We are glad you have chosen to join DevSearch!'
+        # trigger a verification email when profile is created
+        send_mail(
+            subject,
+            message,
+            # from email, sender
+            settings.EMAIL_HOST_USER,
+            # recipient, can enter multiple email addresses, must be in brackets
+            [profile.email],
+            # argument controls how the backend should handle errors
+            fail_silently=False,        
+        )
+
 
 def updateUser(sender, instance, created, **kwargs):
     profile = instance
